@@ -547,11 +547,15 @@ pre { background: #f5f5f5; padding: 15px; border-radius: 5px; }
 二次方程：$x = \\\\frac{-b \\\\pm \\\\sqrt{b^2 - 4ac}}{2a}$
 
 ## 代码示例
-\`\`\`python
-def hello_world():
-print("Hello, World!")
-return True
-\`\`\`
+```cpp
+#include <cstdio>
+using namespace std;
+
+int main() {
+    puts("Hello World");
+    return 0;
+}
+```
 
 ## 功能列表
 - Markdown支持
