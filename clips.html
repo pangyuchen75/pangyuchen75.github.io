@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>已保存内容 - PYC 云剪贴板</title>
+    <link rel="icon" type="image/png" href="https://cdn.luogu.com.cn/upload/image_hosting/vri0xwfk.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --bg-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: var(--bg-gradient);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+        
+        .toolbar {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .clips-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            min-height: 70vh;
+        }
+        
+        h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        h2 i {
+            color: var(--primary-color);
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 45px 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .search-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        
+        .clipboard-list {
+            max-height: 65vh;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
+        .clip-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .clip-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            background: white;
+        }
+        
+        .clip-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .clip-title {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.2rem;
+        }
+        
+        .clip-date {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .clip-content {
+            color: #495057;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 80px;
+            overflow: hidden;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .clip-preview {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            margin-bottom: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        .clip-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background: #3a7bc8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+        
+        .btn-success {
+            background: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-danger {
+            background: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-warning {
+            background: var(--warning-color);
+            color: var(--dark-color);
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .btn-info {
+            background: var(--info-color);
+        }
+        
+        .btn-info:hover {
+            background: #138496;
+        }
+        
+        .btn-secondary {
+            background: var(--secondary-color);
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--success-color);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .notification.error {
+            background: var(--danger-color);
+        }
+        
+        .notification.warning {
+            background: var(--warning-color);
+            color: var(--dark-color);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+        }
+        
+        .back-home-btn {
+            background: var(--warning-color);
+            color: var(--dark-color);
+        }
+        
+        .back-home-btn:hover {
+            background: #e0a800;
+        }
+        
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #e8f4fd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .total-clips {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .last-saved {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        /* 预览内容样式 */
+        .clip-preview h1, .clip-preview h2, .clip-preview h3 {
+            margin-top: 1.2rem;
+            margin-bottom: 0.8rem;
+            color: #2c3e50;
+        }
+        
+        .clip-preview h1 {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.3rem;
+            font-size: 1.4rem;
+        }
+        
+        .clip-preview h2 {
+            font-size: 1.2rem;
+        }
+        
+        .clip-preview p {
+            margin-bottom: 0.8rem;
+            color: #495057;
+        }
+        
+        .clip-preview ul, .clip-preview ol {
+            margin-left: 1.5rem;
+            margin-bottom: 0.8rem;
+        }
+        
+        .clip-preview blockquote {
+            border-left: 3px solid var(--primary-color);
+            padding-left: 0.8rem;
+            margin-left: 0;
+            color: #6c757d;
+            font-style: italic;
+            background: #f8f9fa;
+            padding: 0.8rem;
+            border-radius: 0 6px 6px 0;
+        }
+        
+        .clip-preview code {
+            background: #e9ecef;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+            font-size: 0.9rem;
+        }
+        
+        .clip-preview pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .clip-preview pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+            font-size: 0.9rem;
+        }
+        
+        .katex {
+            font-size: 1em;
+        }
+        
+        .katex-display {
+            margin: 1rem 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+            text-align: center;
+            padding: 0.8rem;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .hljs {
+            background: transparent !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-clipboard-list"></i> 已保存内容</h1>
+            <p class="subtitle">查看和管理所有保存的剪贴板内容</p>
+            
+            <div class="toolbar">
+                <button class="btn back-home-btn" id="back-to-home-btn">
+                    <i class="fas fa-arrow-left"></i> 返回主页
+                </button>
+                <button class="btn btn-danger" id="clear-all-btn">
+                    <i class="fas fa-trash"></i> 清空全部
+                </button>
+                <button class="btn btn-warning" id="export-data-btn">
+                    <i class="fas fa-file-export"></i> 导出数据
+                </button>
+            </div>
+        </header>
+        
+        <section class="clips-section">
+            <div class="stats-bar">
+                <div class="total-clips">
+                    <i class="fas fa-clipboard-check"></i>
+                    总计保存: <span id="total-count">0</span> 条内容
+                </div>
+                <div class="last-saved" id="last-saved-time">
+                    最后保存: 暂无
+                </div>
+            </div>
+            
+            <div class="search-box">
+                <input type="text" id="search-clips" placeholder="搜索标题或内容...">
+                <i class="fas fa-search"></i>
+            </div>
+            
+            <div class="clipboard-list" id="clipboard-list">
+                <div class="empty-state">
+                    <i class="fas fa-clipboard"></i>
+                    <p>暂无保存的内容</p>
+                    <p>返回主页添加内容并保存</p>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button class="btn btn-info" id="refresh-btn">
+                    <i class="fas fa-sync"></i> 刷新列表
+                </button>
+            </div>
+        </section>
+        
+        <footer>
+            <p>PYC 云剪贴板 &copy; 2023 - 基于Web技术的现代化笔记工具</p>
+        </footer>
+    </div>
+    
+    <div class="notification" id="notification">操作成功！</div>
+    <script src="script.js"></script>
+</body>
+</html>
