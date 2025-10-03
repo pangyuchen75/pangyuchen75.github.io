@@ -427,6 +427,115 @@
         .hljs {
             background: transparent !important;
         }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: var(--danger-color);
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .setting-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+
+        .setting-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        .setting-description {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        /* 搜索空状态样式 */
+        .mt-2 {
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -444,6 +553,9 @@
                 </button>
                 <button class="btn btn-warning" id="export-data-btn">
                     <i class="fas fa-file-export"></i> 导出数据
+                </button>
+                <button class="btn" id="settings-btn">
+                    <i class="fas fa-cog"></i> 设置
                 </button>
             </div>
         </header>
@@ -483,9 +595,62 @@
             <p>PYC 云剪贴板 &copy; 2023 - 基于Web技术的现代化笔记工具</p>
         </footer>
     </div>
-    
+
+    <!-- 设置模态框 - 添加到这里 -->
+    <div class="modal" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-cog"></i> 设置</h3>
+                <button class="close-modal" id="close-modal">&times;</button>
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label" for="font-size">字体大小</label>
+                <select class="setting-select" id="font-size">
+                    <option value="14px">小 (14px)</option>
+                    <option value="16px" selected>中 (16px)</option>
+                    <option value="18px">大 (18px)</option>
+                    <option value="20px">特大 (20px)</option>
+                </select>
+                <div class="setting-description">设置剪贴板列表字体大小</div>
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label" for="max-clips">最大保存数量</label>
+                <input type="number" class="setting-input" id="max-clips" value="100" min="10" max="1000">
+                <div class="setting-description">设置最多保存的剪贴板条目数量</div>
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label" for="items-per-page">每页显示数量</label>
+                <select class="setting-select" id="items-per-page">
+                    <option value="10">10 条</option>
+                    <option value="20" selected>20 条</option>
+                    <option value="50">50 条</option>
+                    <option value="100">100 条</option>
+                </select>
+                <div class="setting-description">设置每页显示的剪贴板条目数量</div>
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label" for="default-sort">默认排序</label>
+                <select class="setting-select" id="default-sort">
+                    <option value="newest" selected>最新优先</option>
+                    <option value="oldest">最旧优先</option>
+                    <option value="title">按标题排序</option>
+                </select>
+                <div class="setting-description">设置剪贴板列表的默认排序方式</div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="reset-settings-btn">恢复默认</button>
+                <button class="btn btn-success" id="save-settings-btn">保存设置</button>
+            </div>
+        </div>
+    </div>
+
     <div class="notification" id="notification">操作成功！</div>
-    <!-- 在 clips.html 的 script 标签中替换以下内容 -->
+    
     <script>
     // 剪贴板页面特定的 JavaScript 代码
     document.addEventListener('DOMContentLoaded', function() {
@@ -502,17 +667,40 @@
             searchInput.addEventListener('input', function() {
                 const searchTerm = this.value.toLowerCase();
                 const clipItems = document.querySelectorAll('.clip-item');
+                let visibleCount = 0;
                 
                 clipItems.forEach(item => {
                     const title = item.querySelector('.clip-title').textContent.toLowerCase();
                     const content = item.querySelector('.clip-content').textContent.toLowerCase();
+                    const date = item.querySelector('.clip-date').textContent.toLowerCase();
                     
-                    if (title.includes(searchTerm) || content.includes(searchTerm)) {
+                    if (title.includes(searchTerm) || content.includes(searchTerm) || date.includes(searchTerm)) {
                         item.style.display = 'block';
+                        visibleCount++;
                     } else {
                         item.style.display = 'none';
                     }
                 });
+                
+                // 如果没有可见项，显示提示
+                const emptyState = document.querySelector('.empty-state');
+                if (visibleCount === 0 && searchTerm) {
+                    if (!emptyState || !emptyState.querySelector('.search-empty')) {
+                        const clipboardList = document.getElementById('clipboard-list');
+                        clipboardList.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-search"></i>
+                                <p>没有找到匹配的内容</p>
+                                <p>尝试使用其他关键词搜索</p>
+                                <button class="btn btn-sm btn-secondary mt-2" id="clear-search">清除搜索</button>
+                            </div>
+                        `;
+                        document.getElementById('clear-search').addEventListener('click', function() {
+                            searchInput.value = '';
+                            loadAndDisplayClips();
+                        });
+                    }
+                }
             });
         }
         
@@ -570,11 +758,124 @@
             });
         }
         
+        // 设置按钮
+        const settingsBtn = document.getElementById('settings-btn');
+        if (settingsBtn) {
+            settingsBtn.addEventListener('click', openSettings);
+        }
+        
         // 刷新按钮
         const refreshButton = document.getElementById('refresh-btn');
         if (refreshButton) {
             refreshButton.addEventListener('click', function() {
                 location.reload();
+            });
+        }
+        
+        // 设置功能
+        function openSettings() {
+            const modal = document.getElementById('settings-modal');
+            const settings = loadSettings();
+            
+            // 填充当前设置
+            document.getElementById('font-size').value = settings.fontSize;
+            document.getElementById('max-clips').value = settings.maxClips;
+            document.getElementById('items-per-page').value = settings.itemsPerPage;
+            document.getElementById('default-sort').value = settings.defaultSort;
+            
+            modal.style.display = 'block';
+        }
+
+        function closeSettings() {
+            const modal = document.getElementById('settings-modal');
+            modal.style.display = 'none';
+        }
+
+        function loadSettings() {
+            const defaultSettings = {
+                fontSize: '16px',
+                maxClips: 100,
+                itemsPerPage: 20,
+                defaultSort: 'newest'
+            };
+            
+            try {
+                const savedSettings = localStorage.getItem('clipboardSettings');
+                return savedSettings ? { ...defaultSettings, ...JSON.parse(savedSettings) } : defaultSettings;
+            } catch (e) {
+                return defaultSettings;
+            }
+        }
+
+        function saveSettings() {
+            const settings = {
+                fontSize: document.getElementById('font-size').value,
+                maxClips: parseInt(document.getElementById('max-clips').value),
+                itemsPerPage: parseInt(document.getElementById('items-per-page').value),
+                defaultSort: document.getElementById('default-sort').value
+            };
+            
+            try {
+                localStorage.setItem('clipboardSettings', JSON.stringify(settings));
+                applySettings(settings);
+                closeSettings();
+                showNotification('设置已保存！');
+            } catch (e) {
+                showNotification('保存设置失败', 'error');
+            }
+        }
+
+        function resetSettings() {
+            if (confirm('确定要恢复默认设置吗？')) {
+                const defaultSettings = {
+                    fontSize: '16px',
+                    maxClips: 100,
+                    itemsPerPage: 20,
+                    defaultSort: 'newest'
+                };
+                
+                document.getElementById('font-size').value = defaultSettings.fontSize;
+                document.getElementById('max-clips').value = defaultSettings.maxClips;
+                document.getElementById('items-per-page').value = defaultSettings.itemsPerPage;
+                document.getElementById('default-sort').value = defaultSettings.defaultSort;
+                
+                showNotification('已恢复默认设置');
+            }
+        }
+
+        function applySettings(settings) {
+            // 应用字体大小到剪贴板列表
+            const clipItems = document.querySelectorAll('.clip-item');
+            clipItems.forEach(item => {
+                item.style.fontSize = settings.fontSize;
+            });
+        }
+        
+        // 关闭模态框按钮
+        const closeModalBtn = document.getElementById('close-modal');
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', closeSettings);
+        }
+        
+        // 保存设置按钮
+        const saveSettingsBtn = document.getElementById('save-settings-btn');
+        if (saveSettingsBtn) {
+            saveSettingsBtn.addEventListener('click', saveSettings);
+        }
+        
+        // 重置设置按钮
+        const resetSettingsBtn = document.getElementById('reset-settings-btn');
+        if (resetSettingsBtn) {
+            resetSettingsBtn.addEventListener('click', resetSettings);
+        }
+        
+        // 点击模态框外部关闭
+        const modal = document.getElementById('settings-modal');
+        if (modal) {
+            modal.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    closeSettings();
+                }
             });
         }
         
