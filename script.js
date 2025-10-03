@@ -231,32 +231,54 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderPreviewContent(content, element) {
         try {
-            // 临时替换数学公式中的 $$ 为特殊标记
-            let processedContent = content.replace(/\$\$/g, '%%MATH_DELIMITER%%');
+            // 第一步：预处理数学公式区域，保护它们不被 Markdown 处理
+            let mathBlocks = [];
+            let processedContent = content;
             
-            let html = marked.parse(processedContent);
-            
-            // 恢复 $$ 并渲染数学公式
-            html = html.replace(/%%MATH_DELIMITER%%([\s\S]*?)%%MATH_DELIMITER%%/g, (match, formula) => {
-                try {
-                    return katex.renderToString(formula.trim(), { 
-                        displayMode: true, 
-                        throwOnError: false
-                    });
-                } catch (e) {
-                    return `<div class="error-message">公式渲染错误</div>`;
-                }
+            // 处理块级公式 $$...$$
+            processedContent = processedContent.replace(/\$\$([\s\S]*?)\$\$/g, (match, formula) => {
+                const id = `math-block-${mathBlocks.length}`;
+                mathBlocks.push({
+                    id: id,
+                    content: formula,
+                    type: 'block'
+                });
+                return `@@${id}@@`;
             });
             
-            // 处理行内公式 $
-            html = html.replace(/\$([^$\\]*(?:\\.[^$\\]*)*)\$/g, (match, formula) => {
+            // 处理行内公式 $...$
+            processedContent = processedContent.replace(/\$([^$\\]*(?:\\.[^$\\]*)*)\$/g, (match, formula) => {
+                // 跳过已经被块级公式处理的内容
+                if (match.startsWith('@@') && match.endsWith('@@')) {
+                    return match;
+                }
+                const id = `math-inline-${mathBlocks.length}`;
+                mathBlocks.push({
+                    id: id,
+                    content: formula,
+                    type: 'inline'
+                });
+                return `@@${id}@@`;
+            });
+            
+            // 第二步：使用 marked 渲染 Markdown
+            let html = marked.parse(processedContent);
+            
+            // 第三步：恢复数学公式并用 KaTeX 渲染
+            mathBlocks.forEach(math => {
                 try {
-                    return katex.renderToString(formula.trim(), { 
-                        displayMode: false, 
-                        throwOnError: false
+                    const katexHtml = katex.renderToString(math.content.trim(), {
+                        displayMode: math.type === 'block',
+                        throwOnError: false,
+                        output: 'html'
                     });
+                    html = html.replace(`@@${math.id}@@`, katexHtml);
                 } catch (e) {
-                    return `<span class="error-message">${formula}</span>`;
+                    console.error('KaTeX 渲染错误:', e);
+                    const errorMsg = math.type === 'block' 
+                        ? `<div class="katex-error">公式渲染错误: ${math.content}</div>`
+                        : `<span class="katex-error">${math.content}</span>`;
+                    html = html.replace(`@@${math.id}@@`, errorMsg);
                 }
             });
             
@@ -267,7 +289,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 hljs.highlightElement(block);
             });
         } catch (e) {
-            element.innerHTML = `<div class="error-message">渲染错误</div>`;
+            console.error('渲染错误:', e);
+            element.innerHTML = `<div class="error-message">渲染错误: ${e.message}</div>`;
         }
     }
 
