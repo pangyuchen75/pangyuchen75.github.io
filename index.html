@@ -6,7 +6,7 @@
     <title>PYC 云剪贴板 - 同步滚动演示</title>
     <link rel="icon" type="image/png" href="https://cdn.luogu.com.cn/upload/image_hosting/vri0xwfk.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -433,6 +433,110 @@
             color: white;
             font-size: 0.8rem;
         }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: var(--danger-color);
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .setting-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+
+        .setting-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        .setting-description {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
     </style>
 </head>
 <body>
@@ -445,7 +549,7 @@
                 <button class="btn btn-info" id="import-file-btn">
                     <i class="fas fa-file-import"></i>导入文件
                 </button>
-                <input type="file" id="import-file" accept=".txt,.md,.html">
+                <input type="file" id="import-file" accept=".txt,.md,.html" style="display: none;">
                 <button class="btn btn-warning" id="export-pdf-btn">
                     <i class="fas fa-file-pdf"></i>导出PDF
                 </button>
@@ -501,9 +605,10 @@
 - ✅ **代码语法高亮**
 - ✅ **文件导入导出**
 - ✅ **PDF导出**
+- ✅ **HTML导出**
+- ✅ **打印功能**
 - ✅ **主题切换**
 - ✅ **搜索过滤**
-- ✅ **自动保存**
 - ✅ **数据统计**
 
 ## 数学公式示例
@@ -515,7 +620,7 @@ $$
 $$
 
 ## 代码示例
-\`\`\`javascript
+```javascript
 // JavaScript代码示例
 function fibonacci(n) {
     if (n <= 1) return n;
@@ -523,7 +628,7 @@ function fibonacci(n) {
 }
 
 console.log(fibonacci(10)); // 输出 55
-\`\`\`
+```
 
 > 提示：使用上方工具栏快速插入格式
 
@@ -535,53 +640,7 @@ console.log(fibonacci(10)); // 输出 55
 1. 在编辑器中输入或编辑内容
 2. 预览区域会实时显示渲染效果
 3. 滚动任一区域，另一个区域会自动同步滚动
-4. 您可以通过右上角的同步指示器控制同步功能
-
-### 更多内容示例
-
-这是一个较长的文档，用于演示同步滚动功能。您可以尝试滚动编辑器和预览区域，观察它们如何保持同步。
-
-#### 列表示例
-- 项目一
-- 项目二
-- 项目三
-
-#### 表格示例
-| 功能 | 状态 | 说明 |
-|------|------|------|
-| 同步滚动 | ✅ | 已实现 |
-| 高度限制 | ✅ | 已实现 |
-| 实时预览 | ✅ | 已实现 |
-
-#### 代码块示例
-\`\`\`python
-def calculate_fibonacci(n):
-    if n <= 0:
-        return 0
-    elif n == 1:
-        return 1
-    else:
-        return calculate_fibonacci(n-1) + calculate_fibonacci(n-2)
-\`\`\`
-
-#### 引用示例
-> 这是一个引用示例，用于展示同步滚动功能的效果。
-
-#### 数学公式示例
-$$
-f(x) = \int_{-\infty}^{\infty} \hat f(\xi)\,e^{2 \pi i \xi x} \,d\xi
-$$
-
-#### 更多文本
-继续添加更多内容以测试同步滚动功能。这段文本将帮助您观察编辑器和预览区域如何保持同步。
-
-### 功能总结
-- 编辑器与预览区域高度一致
-- 双向同步滚动
-- 可随时启用/禁用同步
-- 不影响其他功能
-
-感谢使用PYC云剪贴板！</textarea>
+4. 您可以通过右上角的同步指示器控制同步功能</textarea>
                 </div>
             
                 <div class="actions">
@@ -590,9 +649,6 @@ $$
                     </button>
                     <button id="clear-btn" class="btn btn-secondary">
                         <i class="fas fa-trash"></i> 清空
-                    </button>
-                    <button id="auto-save-btn" class="btn btn-info">
-                        <i class="fas fa-sync"></i> 自动保存: 开启
                     </button>
                 </div>
                 
@@ -649,6 +705,58 @@ $$
         </footer>
     </div>
 
+    <!-- 设置模态框 -->
+    <div class="modal" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-cog"></i> 设置</h3>
+                <button class="close-modal" id="close-modal">&times;</button>
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label" for="font-size">字体大小</label>
+                <select class="setting-select" id="font-size">
+                    <option value="14px">小 (14px)</option>
+                    <option value="16px" selected>中 (16px)</option>
+                    <option value="18px">大 (18px)</option>
+                    <option value="20px">特大 (20px)</option>
+                </select>
+                <div class="setting-description">设置编辑器字体大小</div>
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label" for="editor-theme">编辑器主题</label>
+                <select class="setting-select" id="editor-theme">
+                    <option value="default" selected>默认</option>
+                    <option value="dark">暗色</option>
+                    <option value="light">亮色</option>
+                </select>
+                <div class="setting-description">设置编辑器颜色主题</div>
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label" for="max-clips">最大保存数量</label>
+                <input type="number" class="setting-input" id="max-clips" value="100" min="10" max="1000">
+                <div class="setting-description">设置最多保存的剪贴板条目数量</div>
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label" for="default-format">默认格式</label>
+                <select class="setting-select" id="default-format">
+                    <option value="markdown" selected>Markdown</option>
+                    <option value="plain">纯文本</option>
+                    <option value="html">HTML</option>
+                </select>
+                <div class="setting-description">设置新建文档的默认格式</div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="reset-settings-btn">恢复默认</button>
+                <button class="btn btn-success" id="save-settings-btn">保存设置</button>
+            </div>
+        </div>
+    </div>
+
     <div class="notification" id="notification">操作成功！</div>
     
     <script>
@@ -676,10 +784,18 @@ $$
 
     // 配置marked
     function configureMarked() {
+        const renderer = new marked.Renderer();
+        
+        // 自定义渲染器改进
+        renderer.link = function(href, title, text) {
+            return `<a href="${href}" title="${title || ''}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+        };
+        
         marked.setOptions({
             breaks: true,
             gfm: true,
-            sanitize: false
+            sanitize: false,
+            renderer: renderer
         });
         console.log('Marked配置完成');
     }
@@ -898,15 +1014,32 @@ $$
             date: new Date().toLocaleString('zh-CN')
         };
         
-        clips.unshift(newClip);
-        
-        // 更新保存计数
-        const saveCountEl = document.getElementById('save-count');
-        if (saveCountEl) {
-            saveCountEl.textContent = clips.length;
+        // 从本地存储获取现有数据
+        let clips = [];
+        try {
+            const savedClips = localStorage.getItem('enhancedClips');
+            clips = savedClips ? JSON.parse(savedClips) : [];
+        } catch (e) {
+            console.error('加载保存的内容失败:', e);
         }
         
-        showNotification('内容已保存！');
+        clips.unshift(newClip);
+        
+        // 保存到本地存储
+        try {
+            localStorage.setItem('enhancedClips', JSON.stringify(clips));
+            
+            // 更新保存计数
+            const saveCountEl = document.getElementById('save-count');
+            if (saveCountEl) {
+                saveCountEl.textContent = clips.length;
+            }
+            
+            showNotification('内容已保存！');
+        } catch (e) {
+            console.error('保存失败:', e);
+            showNotification('保存失败，存储空间可能已满', 'error');
+        }
     }
 
     // 清空内容
@@ -964,6 +1097,395 @@ $$
             });
     }
 
+    // 导出PDF功能
+    function exportToPDF() {
+        const staticPreview = document.getElementById('static-preview');
+        const title = document.getElementById('clip-title').value || '未命名文档';
+        
+        // 使用html2pdf.js库进行PDF导出
+        if (typeof html2pdf === 'undefined') {
+            // 动态加载html2pdf库
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+            script.onload = function() {
+                generatePDF(staticPreview, title);
+            };
+            document.head.appendChild(script);
+            showNotification('正在加载PDF导出功能...', 'info');
+        } else {
+            generatePDF(staticPreview, title);
+        }
+    }
+
+    function generatePDF(element, title) {
+        const opt = {
+            margin: 10,
+            filename: `${title}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save()
+            .then(() => {
+                showNotification('PDF导出成功！');
+            })
+            .catch(err => {
+                console.error('PDF导出失败:', err);
+                showNotification('PDF导出失败', 'error');
+            });
+    }
+
+    // 导出HTML功能
+    function exportToHTML() {
+        const staticPreview = document.getElementById('static-preview');
+        const title = document.getElementById('clip-title').value || '未命名文档';
+        const content = staticPreview.innerHTML;
+        
+        const htmlContent = `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${escapeHtml(title)}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #4a90e2;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2, h3 {
+            color: #2c3e50;
+            margin-top: 2rem;
+        }
+        p {
+            margin-bottom: 1rem;
+            color: #495057;
+        }
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+        blockquote {
+            border-left: 4px solid #4a90e2;
+            padding-left: 1rem;
+            margin-left: 0;
+            color: #6c757d;
+            font-style: italic;
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+        }
+        code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+        }
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #4a90e2;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+        .katex {
+            font-size: 1.1em;
+        }
+        .katex-display {
+            margin: 1.5rem 0;
+            text-align: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #6c757d;
+            font-size: 0.9rem;
+            border-top: 1px solid #e9ecef;
+            padding-top: 20px;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>${escapeHtml(title)}</h1>
+        <div>${content}</div>
+        <div class="footer">
+            <p>导出自 PYC 云剪贴板 &copy; 2023</p>
+        </div>
+    </div>
+</body>
+</html>`;
+        
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showNotification('HTML导出成功！');
+    }
+
+    // 打印功能
+    function printContent() {
+        const staticPreview = document.getElementById('static-preview');
+        const title = document.getElementById('clip-title').value || '未命名文档';
+        
+        const printContent = `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>${escapeHtml(title)}</title>
+    <link rel="stylesheet" href="https://unpkg.com/katex@0.16.9/dist/katex.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #4a90e2;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        h2, h3 {
+            color: #2c3e50;
+            margin-top: 2rem;
+        }
+        p {
+            margin-bottom: 1rem;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            page-break-inside: avoid;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .katex-display {
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        @media print {
+            body {
+                padding: 0;
+                max-width: none;
+            }
+            pre, blockquote {
+                page-break-inside: avoid;
+            }
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>${escapeHtml(title)}</h1>
+    <div>${staticPreview.innerHTML}</div>
+</body>
+</html>`;
+        
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        
+        printWindow.onload = function() {
+            printWindow.print();
+            setTimeout(() => {
+                printWindow.close();
+            }, 500);
+        };
+    }
+
+    // 导入文件功能
+    function handleFileImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const clipboardContent = document.getElementById('clipboard-content');
+            const clipTitle = document.getElementById('clip-title');
+            
+            if (clipboardContent) {
+                clipboardContent.value = e.target.result;
+                
+                // 设置文件名为标题
+                if (clipTitle) {
+                    const fileName = file.name.replace(/\.[^/.]+$/, ""); // 移除扩展名
+                    clipTitle.value = fileName;
+                }
+                
+                updatePreviews();
+                showNotification('文件导入成功！');
+            }
+        };
+        
+        reader.onerror = function() {
+            showNotification('文件读取失败', 'error');
+        };
+        
+        reader.readAsText(file);
+        
+        // 重置文件输入
+        event.target.value = '';
+    }
+
+    // 设置功能
+    function openSettings() {
+        const modal = document.getElementById('settings-modal');
+        const settings = loadSettings();
+        
+        // 填充当前设置
+        document.getElementById('font-size').value = settings.fontSize;
+        document.getElementById('editor-theme').value = settings.editorTheme;
+        document.getElementById('max-clips').value = settings.maxClips;
+        document.getElementById('default-format').value = settings.defaultFormat;
+        
+        modal.style.display = 'block';
+    }
+
+    function closeSettings() {
+        const modal = document.getElementById('settings-modal');
+        modal.style.display = 'none';
+    }
+
+    function loadSettings() {
+        const defaultSettings = {
+            fontSize: '16px',
+            editorTheme: 'default',
+            maxClips: 100,
+            defaultFormat: 'markdown'
+        };
+        
+        try {
+            const savedSettings = localStorage.getItem('clipboardSettings');
+            return savedSettings ? { ...defaultSettings, ...JSON.parse(savedSettings) } : defaultSettings;
+        } catch (e) {
+            return defaultSettings;
+        }
+    }
+
+    function saveSettings() {
+        const settings = {
+            fontSize: document.getElementById('font-size').value,
+            editorTheme: document.getElementById('editor-theme').value,
+            maxClips: parseInt(document.getElementById('max-clips').value),
+            defaultFormat: document.getElementById('default-format').value
+        };
+        
+        try {
+            localStorage.setItem('clipboardSettings', JSON.stringify(settings));
+            applySettings(settings);
+            closeSettings();
+            showNotification('设置已保存！');
+        } catch (e) {
+            showNotification('保存设置失败', 'error');
+        }
+    }
+
+    function resetSettings() {
+        if (confirm('确定要恢复默认设置吗？')) {
+            const defaultSettings = {
+                fontSize: '16px',
+                editorTheme: 'default',
+                maxClips: 100,
+                defaultFormat: 'markdown'
+            };
+            
+            document.getElementById('font-size').value = defaultSettings.fontSize;
+            document.getElementById('editor-theme').value = defaultSettings.editorTheme;
+            document.getElementById('max-clips').value = defaultSettings.maxClips;
+            document.getElementById('default-format').value = defaultSettings.defaultFormat;
+            
+            showNotification('已恢复默认设置');
+        }
+    }
+
+    function applySettings(settings) {
+        // 应用字体大小
+        const editor = document.getElementById('clipboard-content');
+        if (editor) {
+            editor.style.fontSize = settings.fontSize;
+        }
+        
+        // 应用编辑器主题
+        if (settings.editorTheme === 'dark') {
+            editor.style.backgroundColor = '#2d3748';
+            editor.style.color = 'white';
+        } else if (settings.editorTheme === 'light') {
+            editor.style.backgroundColor = 'white';
+            editor.style.color = '#333';
+        } else {
+            editor.style.backgroundColor = '';
+            editor.style.color = '';
+        }
+    }
+
+    // HTML转义函数
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     // 初始化所有事件监听器
     function initEventListeners() {
         console.log('初始化事件监听器');
@@ -972,14 +1494,12 @@ $$
         const saveBtn = document.getElementById('save-btn');
         if (saveBtn) {
             saveBtn.addEventListener('click', saveContent);
-            console.log('保存按钮事件已绑定');
         }
         
         // 清空按钮
         const clearBtn = document.getElementById('clear-btn');
         if (clearBtn) {
             clearBtn.addEventListener('click', clearContent);
-            console.log('清空按钮事件已绑定');
         }
         
         // 格式按钮
@@ -990,27 +1510,73 @@ $$
                 insertText(format);
             });
         });
-        console.log('格式按钮事件已绑定');
         
         // 复制HTML按钮
         const copyHtmlBtn = document.getElementById('copy-html-btn');
         if (copyHtmlBtn) {
             copyHtmlBtn.addEventListener('click', copyHTML);
-            console.log('复制HTML按钮事件已绑定');
         }
         
         // 复制文本按钮
         const copyTextBtn = document.getElementById('copy-text-btn');
         if (copyTextBtn) {
             copyTextBtn.addEventListener('click', copyText);
-            console.log('复制文本按钮事件已绑定');
+        }
+        
+        // 导出PDF按钮
+        const exportPdfBtn = document.getElementById('export-pdf-btn');
+        if (exportPdfBtn) {
+            exportPdfBtn.addEventListener('click', exportToPDF);
+        }
+        
+        // 导出HTML按钮
+        const exportHtmlBtn = document.getElementById('export-html-btn');
+        if (exportHtmlBtn) {
+            exportHtmlBtn.addEventListener('click', exportToHTML);
+        }
+        
+        // 打印按钮
+        const printBtn = document.getElementById('print-btn');
+        if (printBtn) {
+            printBtn.addEventListener('click', printContent);
+        }
+        
+        // 设置按钮
+        const settingsBtn = document.getElementById('settings-btn');
+        if (settingsBtn) {
+            settingsBtn.addEventListener('click', openSettings);
+        }
+        
+        // 关闭模态框按钮
+        const closeModalBtn = document.getElementById('close-modal');
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', closeSettings);
+        }
+        
+        // 保存设置按钮
+        const saveSettingsBtn = document.getElementById('save-settings-btn');
+        if (saveSettingsBtn) {
+            saveSettingsBtn.addEventListener('click', saveSettings);
+        }
+        
+        // 重置设置按钮
+        const resetSettingsBtn = document.getElementById('reset-settings-btn');
+        if (resetSettingsBtn) {
+            resetSettingsBtn.addEventListener('click', resetSettings);
+        }
+        
+        // 文件导入
+        const importFileBtn = document.getElementById('import-file-btn');
+        const importFileInput = document.getElementById('import-file');
+        if (importFileBtn && importFileInput) {
+            importFileBtn.addEventListener('click', () => importFileInput.click());
+            importFileInput.addEventListener('change', handleFileImport);
         }
         
         // 编辑器输入事件
         const clipboardContent = document.getElementById('clipboard-content');
         if (clipboardContent) {
             clipboardContent.addEventListener('input', updatePreviews);
-            console.log('编辑器输入事件已绑定');
         }
         
         // 主题切换
@@ -1028,24 +1594,43 @@ $$
                 showNotification(`已切换到${this.textContent}主题`);
             });
         });
-        console.log('主题切换事件已绑定');
         
-        // 其他按钮的简单实现
+        // 其他按钮
         const otherButtons = [
-            'import-file-btn', 'export-pdf-btn', 'export-html-btn', 'print-btn',
-            'settings-btn', 'clear-all-btn', 'view-clips-btn', 'share-link-btn',
-            'auto-save-btn'
+            'clear-all-btn', 'view-clips-btn', 'share-link-btn'
         ];
         
         otherButtons.forEach(id => {
             const btn = document.getElementById(id);
             if (btn) {
                 btn.addEventListener('click', function() {
-                    showNotification(`功能 "${this.textContent.trim()}" 正在开发中`, 'info');
+                    if (id === 'view-clips-btn') {
+                        window.location.href = 'clips.html';
+                    } else if (id === 'clear-all-btn') {
+                        if (confirm('确定要清空所有内容吗？此操作不可恢复！')) {
+                            localStorage.removeItem('enhancedClips');
+                            const saveCountEl = document.getElementById('save-count');
+                            if (saveCountEl) {
+                                saveCountEl.textContent = '0';
+                            }
+                            showNotification('所有内容已清空');
+                        }
+                    } else {
+                        showNotification(`功能 "${this.textContent.trim()}" 正在开发中`, 'info');
+                    }
                 });
             }
         });
-        console.log('其他按钮事件已绑定');
+
+        // 点击模态框外部关闭
+        const modal = document.getElementById('settings-modal');
+        if (modal) {
+            modal.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    closeSettings();
+                }
+            });
+        }
     }
 
     // 初始化
@@ -1065,9 +1650,25 @@ $$
             // 初始化同步滚动
             initSyncScroll();
             
+            // 应用设置
+            const settings = loadSettings();
+            applySettings(settings);
+            
             // 初始更新预览
             updatePreviews();
             updateStats();
+            
+            // 加载保存计数
+            try {
+                const savedClips = localStorage.getItem('enhancedClips');
+                const clips = savedClips ? JSON.parse(savedClips) : [];
+                const saveCountEl = document.getElementById('save-count');
+                if (saveCountEl) {
+                    saveCountEl.textContent = clips.length;
+                }
+            } catch (e) {
+                console.error('加载保存计数失败:', e);
+            }
             
             console.log('应用初始化完成');
         } catch (error) {
