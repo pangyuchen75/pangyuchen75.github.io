@@ -485,6 +485,304 @@
     </div>
     
     <div class="notification" id="notification">操作成功！</div>
-    <script src="script.js"></script>
+    <!-- 在 clips.html 的 script 标签中替换以下内容 -->
+    <script>
+    // 剪贴板页面特定的 JavaScript 代码
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('剪贴板页面加载完成');
+        
+        // 从主页加载脚本
+        const script = document.createElement('script');
+        script.src = 'script.js';
+        document.head.appendChild(script);
+        
+        // 初始化搜索功能
+        const searchInput = document.getElementById('search-clips');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const clipItems = document.querySelectorAll('.clip-item');
+                
+                clipItems.forEach(item => {
+                    const title = item.querySelector('.clip-title').textContent.toLowerCase();
+                    const content = item.querySelector('.clip-content').textContent.toLowerCase();
+                    
+                    if (title.includes(searchTerm) || content.includes(searchTerm)) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        }
+        
+        // 返回主页按钮
+        const backButton = document.getElementById('back-to-home-btn');
+        if (backButton) {
+            backButton.addEventListener('click', function() {
+                window.location.href = 'index.html';
+            });
+        }
+        
+        // 清空全部按钮
+        const clearAllButton = document.getElementById('clear-all-btn');
+        if (clearAllButton) {
+            clearAllButton.addEventListener('click', function() {
+                if (confirm('确定要清空所有保存的内容吗？此操作不可恢复！')) {
+                    localStorage.removeItem('enhancedClips');
+                    // 重新加载页面
+                    location.reload();
+                }
+            });
+        }
+        
+        // 导出数据按钮
+        const exportButton = document.getElementById('export-data-btn');
+        if (exportButton) {
+            exportButton.addEventListener('click', function() {
+                // 获取保存的内容
+                const savedClips = localStorage.getItem('enhancedClips');
+                if (!savedClips) {
+                    alert('没有可导出的数据');
+                    return;
+                }
+                
+                try {
+                    const clips = JSON.parse(savedClips);
+                    const dataStr = JSON.stringify(clips, null, 2);
+                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                    
+                    // 创建下载链接
+                    const url = URL.createObjectURL(dataBlob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `clipboard-backup-${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    alert('数据导出成功！');
+                } catch (e) {
+                    console.error('导出失败:', e);
+                    alert('数据导出失败');
+                }
+            });
+        }
+        
+        // 刷新按钮
+        const refreshButton = document.getElementById('refresh-btn');
+        if (refreshButton) {
+            refreshButton.addEventListener('click', function() {
+                location.reload();
+            });
+        }
+        
+        // 加载并显示保存的内容
+        function loadAndDisplayClips() {
+            const clipboardList = document.getElementById('clipboard-list');
+            const totalCountEl = document.getElementById('total-count');
+            const lastSavedTimeEl = document.getElementById('last-saved-time');
+            
+            try {
+                const savedClips = localStorage.getItem('enhancedClips');
+                const clips = savedClips ? JSON.parse(savedClips) : [];
+                
+                // 更新统计信息
+                if (totalCountEl) {
+                    totalCountEl.textContent = clips.length;
+                }
+                
+                if (lastSavedTimeEl && clips.length > 0) {
+                    const lastClip = clips[0];
+                    lastSavedTimeEl.textContent = `最后保存: ${lastClip.date}`;
+                } else if (lastSavedTimeEl) {
+                    lastSavedTimeEl.textContent = '最后保存: 暂无';
+                }
+                
+                // 显示内容列表
+                if (clips.length === 0) {
+                    clipboardList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-clipboard"></i>
+                            <p>暂无保存的内容</p>
+                            <p>返回主页添加内容并保存</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                clipboardList.innerHTML = '';
+                clips.forEach((clip, index) => {
+                    const clipElement = document.createElement('div');
+                    clipElement.className = 'clip-item';
+                    clipElement.innerHTML = `
+                        <div class="clip-header">
+                            <span class="clip-title">${escapeHtml(clip.title || '未命名文档')}</span>
+                            <span class="clip-date">${escapeHtml(clip.date)}</span>
+                        </div>
+                        <div class="clip-content">${escapeHtml(clip.content.substring(0, 100))}${clip.content.length > 100 ? '...' : ''}</div>
+                        <div class="clip-actions">
+                            <button class="btn btn-sm copy-btn" data-index="${index}">
+                                <i class="fas fa-copy"></i> 复制
+                            </button>
+                            <button class="btn btn-sm edit-btn" data-index="${index}">
+                                <i class="fas fa-edit"></i> 编辑
+                            </button>
+                            <button class="btn btn-sm delete-btn" data-index="${index}">
+                                <i class="fas fa-trash"></i> 删除
+                            </button>
+                        </div>
+                    `;
+                    clipboardList.appendChild(clipElement);
+                });
+                
+                // 添加事件监听器
+                addClipEventListeners();
+                
+            } catch (e) {
+                console.error('加载保存的内容失败:', e);
+                clipboardList.innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>加载数据失败</p>
+                        <p>请检查浏览器控制台获取详细信息</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 为剪贴板项添加事件监听器
+        function addClipEventListeners() {
+            const copyButtons = document.querySelectorAll('.copy-btn');
+            const editButtons = document.querySelectorAll('.edit-btn');
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            
+            copyButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    copyClipContent(index);
+                });
+            });
+            
+            editButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    editClipContent(index);
+                });
+            });
+            
+            deleteButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    deleteClipContent(index);
+                });
+            });
+        }
+        
+        // 复制剪贴板内容
+        function copyClipContent(index) {
+            try {
+                const savedClips = localStorage.getItem('enhancedClips');
+                const clips = savedClips ? JSON.parse(savedClips) : [];
+                const clip = clips[index];
+                
+                navigator.clipboard.writeText(clip.content)
+                    .then(() => {
+                        showNotification('内容已复制到剪贴板！');
+                    })
+                    .catch(err => {
+                        showNotification('复制失败', 'error');
+                    });
+            } catch (e) {
+                console.error('复制失败:', e);
+                showNotification('复制失败', 'error');
+            }
+        }
+        
+        // 编辑剪贴板内容
+        function editClipContent(index) {
+            try {
+                const savedClips = localStorage.getItem('enhancedClips');
+                const clips = savedClips ? JSON.parse(savedClips) : [];
+                const clip = clips[index];
+                
+                // 保存到临时存储，然后在主页加载
+                localStorage.setItem('editClip', JSON.stringify(clip));
+                window.location.href = 'index.html';
+            } catch (e) {
+                console.error('编辑失败:', e);
+                showNotification('编辑失败', 'error');
+            }
+        }
+        
+        // 删除剪贴板内容
+        function deleteClipContent(index) {
+            if (confirm('确定要删除这条内容吗？')) {
+                try {
+                    const savedClips = localStorage.getItem('enhancedClips');
+                    let clips = savedClips ? JSON.parse(savedClips) : [];
+                    
+                    clips.splice(index, 1);
+                    localStorage.setItem('enhancedClips', JSON.stringify(clips));
+                    
+                    // 重新加载显示
+                    loadAndDisplayClips();
+                    showNotification('内容已删除');
+                } catch (e) {
+                    console.error('删除失败:', e);
+                    showNotification('删除失败', 'error');
+                }
+            }
+        }
+        
+        // 显示通知
+        function showNotification(message, type = 'success') {
+            // 创建通知元素
+            let notification = document.getElementById('notification');
+            if (!notification) {
+                notification = document.createElement('div');
+                notification.id = 'notification';
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 12px 20px;
+                    border-radius: 5px;
+                    color: white;
+                    font-weight: bold;
+                    z-index: 10000;
+                    transition: all 0.3s ease;
+                    transform: translateX(100%);
+                    opacity: 0;
+                `;
+                document.body.appendChild(notification);
+            }
+            
+            // 设置样式和内容
+            notification.textContent = message;
+            notification.style.backgroundColor = type === 'error' ? '#e74c3c' : 
+                                            type === 'info' ? '#3498db' : '#27ae60';
+            notification.style.transform = 'translateX(0)';
+            notification.style.opacity = '1';
+            
+            // 3秒后隐藏
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                notification.style.opacity = '0';
+            }, 3000);
+        }
+        
+        // HTML转义函数
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // 初始加载
+        loadAndDisplayClips();
+    });
+    </script>
 </body>
 </html>
