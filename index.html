@@ -307,6 +307,7 @@
             gap: 8px;
             margin-bottom: 15px;
             flex-shrink: 0;
+            align-items: center;
         }
         
         .theme-btn {
@@ -407,142 +408,17 @@
             flex-shrink: 0;
         }
         
-        .tabs {
-            display: flex;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #dee2e6;
-        }
-        
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
-            font-weight: 500;
-        }
-        
-        .tab.active {
-            border-bottom: 3px solid var(--primary-color);
-            color: var(--primary-color);
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .katex {
-            font-size: 1.1em;
-        }
-        
-        .katex-display {
-            margin: 1.5rem 0;
-            overflow-x: auto;
-            overflow-y: hidden;
-            text-align: center;
-            padding: 1rem;
-            background: white;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
-        }
-        
-        .format-help {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
-            font-size: 0.9rem;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        
-        .modal h3 {
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
-        
-        .close-modal {
-            float: right;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #6c757d;
-        }
-        
-        .settings-group {
-            margin-bottom: 20px;
-        }
-        
-        .settings-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        
-        .settings-group select, .settings-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 1rem;
-        }
-        
-        .hljs {
-            background: transparent !important;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        .view-clips-btn {
-            background: var(--warning-color);
-            color: var(--dark-color);
-        }
-
-        .view-clips-btn:hover {
-            background: #e0a800;
-        }
-        
         /* 同步滚动指示器 */
         .sync-indicator {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.7);
+            background: var(--success-color);
             color: white;
             padding: 5px 10px;
             border-radius: 4px;
             font-size: 0.8rem;
-            z-index: 10;
-            display: none;
-        }
-        
-        .sync-enabled {
-            background: var(--success-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
         }
         
         .sync-disabled {
@@ -550,11 +426,10 @@
         }
         
         .sync-toggle {
-            margin-left: 10px;
             cursor: pointer;
             padding: 4px 8px;
             border-radius: 4px;
-            background: var(--info-color);
+            background: rgba(255,255,255,0.2);
             color: white;
             font-size: 0.8rem;
         }
@@ -612,12 +487,11 @@
                     <button class="btn btn-sm" data-format="$$\n块公式\n$$">块公式</button>
                 </div>
                 
-                <div class="tab-content active" id="write-tab">
-                    <div class="input-group">
-                        <label for="clip-title">标题</label>
-                        <input type="text" id="clip-title" placeholder="输入标题..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px;">
-                        <label for="clipboard-content">内容</label>
-                        <textarea id="clipboard-content" placeholder="在这里输入内容，支持Markdown和LaTeX公式..."># 欢迎使用 PYC 云剪贴板
+                <div class="input-group">
+                    <label for="clip-title">标题</label>
+                    <input type="text" id="clip-title" placeholder="输入标题..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px;">
+                    <label for="clipboard-content">内容</label>
+                    <textarea id="clipboard-content" placeholder="在这里输入内容，支持Markdown和LaTeX公式..."># 欢迎使用 PYC 云剪贴板
 
 这是一个功能完整的云剪贴板，支持：
 
@@ -641,7 +515,7 @@ $$
 $$
 
 ## 代码示例
-```javascript
+\`\`\`javascript
 // JavaScript代码示例
 function fibonacci(n) {
     if (n <= 1) return n;
@@ -649,7 +523,7 @@ function fibonacci(n) {
 }
 
 console.log(fibonacci(10)); // 输出 55
-```
+\`\`\`
 
 > 提示：使用上方工具栏快速插入格式
 
@@ -680,7 +554,7 @@ console.log(fibonacci(10)); // 输出 55
 | 实时预览 | ✅ | 已实现 |
 
 #### 代码块示例
-```python
+\`\`\`python
 def calculate_fibonacci(n):
     if n <= 0:
         return 0
@@ -688,7 +562,7 @@ def calculate_fibonacci(n):
         return 1
     else:
         return calculate_fibonacci(n-1) + calculate_fibonacci(n-2)
-```
+\`\`\`
 
 #### 引用示例
 > 这是一个引用示例，用于展示同步滚动功能的效果。
@@ -708,330 +582,499 @@ $$
 - 不影响其他功能
 
 感谢使用PYC云剪贴板！</textarea>
+                </div>
+            
+                <div class="actions">
+                    <button id="save-btn" class="btn btn-success">
+                        <i class="fas fa-save"></i> 保存内容
+                    </button>
+                    <button id="clear-btn" class="btn btn-secondary">
+                        <i class="fas fa-trash"></i> 清空
+                    </button>
+                    <button id="auto-save-btn" class="btn btn-info">
+                        <i class="fas fa-sync"></i> 自动保存: 开启
+                    </button>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="word-count">0</div>
+                        <div class="stat-label">字数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="char-count">0</div>
+                        <div class="stat-label">字符</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="line-count">0</div>
+                        <div class="stat-label">行数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="save-count">0</div>
+                        <div class="stat-label">已保存</div>
                     </div>
                 </div>
-            <div class="actions">
-                <button id="save-btn" class="btn btn-success">
-                    <i class="fas fa-save"></i> 保存内容
-                </button>
-                <button id="clear-btn" class="btn btn-secondary">
-                    <i class="fas fa-trash"></i> 清空
-                </button>
-                <button id="auto-save-btn" class="btn btn-info">
-                    <i class="fas fa-sync"></i> 自动保存: 开启
-                </button>
-            </div>
+            </section>
             
-            <div class="stats">
-                <div class="stat-item">
-                    <div class="stat-value" id="word-count">0</div>
-                    <div class="stat-label">字数</div>
+            <section class="preview-section">
+                <h2><i class="fas fa-eye"></i> 预览效果</h2>
+                
+                <div class="theme-selector">
+                    <div class="theme-btn theme-light active" data-theme="light">浅色</div>
+                    <div class="theme-btn theme-blue" data-theme="blue">蓝色</div>
+                    <div class="sync-indicator" id="sync-indicator">
+                        同步滚动: 开启
+                        <span class="sync-toggle" id="sync-toggle">关闭</span>
+                    </div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="char-count">0</div>
-                    <div class="stat-label">字符</div>
+                
+                <div class="preview-content" id="static-preview"></div>
+                
+                <div class="export-options">
+                    <button class="btn btn-sm" id="copy-html-btn">
+                        <i class="fas fa-copy"></i> 复制HTML
+                    </button>
+                    <button class="btn btn-sm" id="copy-text-btn">
+                        <i class="fas fa-copy"></i> 复制文本
+                    </button>
+                    <button class="btn btn-sm" id="share-link-btn">
+                        <i class="fas fa-share"></i> 分享链接
+                    </button>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="line-count">0</div>
-                    <div class="stat-label">行数</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="save-count">0</div>
-                    <div class="stat-label">已保存</div>
-                </div>
-            </div>
-        </section>
+            </section>
+        </div>
         
-        <section class="preview-section">
-            <h2><i class="fas fa-eye"></i> 预览效果</h2>
-            
-            <div class="theme-selector">
-                <div class="theme-btn theme-light active" data-theme="light">浅色</div>
-                <div class="theme-btn theme-blue" data-theme="blue">蓝色</div>
-                <div class="sync-indicator sync-enabled" id="sync-indicator">
-                    同步滚动: 开启
-                    <span class="sync-toggle" id="sync-toggle">关闭</span>
-                </div>
-            </div>
-            
-            <div class="preview-content" id="static-preview"></div>
-            
-            <div class="export-options">
-                <button class="btn btn-sm" id="copy-html-btn">
-                    <i class="fas fa-copy"></i> 复制HTML
-                </button>
-                <button class="btn btn-sm" id="copy-text-btn">
-                    <i class="fas fa-copy"></i> 复制文本
-                </button>
-                <button class="btn btn-sm" id="share-link-btn">
-                    <i class="fas fa-share"></i> 分享链接
-                </button>
-            </div>
-        </section>
+        <footer>
+            <p>PYC 云剪贴板 &copy; 2023 - 基于Web技术的现代化笔记工具</p>
+        </footer>
     </div>
-    
-    <footer>
-        <p>PYC 云剪贴板 &copy; 2023 - 基于Web技术的现代化笔记工具</p>
-    </footer>
-</div>
 
-<!-- 设置模态框 -->
-<div class="modal" id="settings-modal">
-    <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <h3><i class="fas fa-cog"></i> 设置</h3>
-        
-        <div class="settings-group">
-            <label>字体大小</label>
-            <select id="font-size">
-                <option value="14px">小</option>
-                <option value="16px" selected>中</option>
-                <option value="18px">大</option>
-                <option value="20px">特大</option>
-            </select>
-        </div>
-        
-        <div class="settings-group">
-            <label>自动保存间隔（秒）</label>
-            <input type="number" id="auto-save-interval" value="30" min="5" max="300">
-        </div>
-        
-        <div class="settings-group">
-            <label>最大保存数量</label>
-            <input type="number" id="max-clips" value="100" min="10" max="1000">
-        </div>
-        
-        <button class="btn btn-success" id="save-settings-btn" style="width: 100%; margin-top: 20px;">
-            <i class="fas fa-save"></i> 保存设置
-        </button>
-    </div>
-</div>
+    <div class="notification" id="notification">操作成功！</div>
+    
+    <script>
+    // 全局变量
+    let syncScrolling = true;
+    let editorScrolling = false;
+    let previewScrolling = false;
+    let clips = [];
 
-<div class="notification" id="notification">操作成功！</div>
-<script>
-// 同步滚动功能
-let syncScrolling = true;
-let editorScrolling = false;
-let previewScrolling = false;
-
-// 初始化同步滚动功能
-function initSyncScroll() {
-    const editor = document.getElementById('clipboard-content');
-    const preview = document.getElementById('static-preview');
-    const syncIndicator = document.getElementById('sync-indicator');
-    const syncToggle = document.getElementById('sync-toggle');
-    
-    if (!editor || !preview) return;
-    
-    // 显示同步指示器
-    syncIndicator.style.display = 'flex';
-    
-    // 同步滚动功能
-    function syncScroll(source, target) {
-        if (!syncScrolling) return;
-        
-        const sourceScrollTop = source.scrollTop;
-        const sourceScrollHeight = source.scrollHeight;
-        const sourceClientHeight = source.clientHeight;
-        
-        const targetScrollHeight = target.scrollHeight;
-        const targetClientHeight = target.clientHeight;
-        
-        // 计算目标元素的滚动位置
-        const ratio = sourceScrollTop / (sourceScrollHeight - sourceClientHeight);
-        const targetScrollTop = ratio * (targetScrollHeight - targetClientHeight);
-        
-        // 设置目标元素的滚动位置
-        target.scrollTop = targetScrollTop;
+    // 等待所有库加载完成
+    function waitForLibraries() {
+        return new Promise((resolve) => {
+            const checkLibraries = () => {
+                if (window.marked && window.hljs && window.katex) {
+                    console.log('所有库已加载');
+                    resolve();
+                } else {
+                    console.log('等待库加载...');
+                    setTimeout(checkLibraries, 100);
+                }
+            };
+            checkLibraries();
+        });
     }
-    
-    // 编辑器滚动事件
-    editor.addEventListener('scroll', function() {
-        if (!syncScrolling || previewScrolling) return;
+
+    // 配置marked
+    function configureMarked() {
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            sanitize: false
+        });
+        console.log('Marked配置完成');
+    }
+
+    // 初始化同步滚动功能
+    function initSyncScroll() {
+        const editor = document.getElementById('clipboard-content');
+        const preview = document.getElementById('static-preview');
+        const syncIndicator = document.getElementById('sync-indicator');
+        const syncToggle = document.getElementById('sync-toggle');
         
-        editorScrolling = true;
-        syncScroll(editor, preview);
-        
-        setTimeout(() => {
-            editorScrolling = false;
-        }, 100);
-    });
-    
-    // 预览区域滚动事件
-    preview.addEventListener('scroll', function() {
-        if (!syncScrolling || editorScrolling) return;
-        
-        previewScrolling = true;
-        syncScroll(preview, editor);
-        
-        setTimeout(() => {
-            previewScrolling = false;
-        }, 100);
-    });
-    
-    // 同步开关
-    syncToggle.addEventListener('click', function() {
-        syncScrolling = !syncScrolling;
-        
-        if (syncScrolling) {
-            syncIndicator.className = 'sync-indicator sync-enabled';
-            syncIndicator.innerHTML = '同步滚动: 开启 <span class="sync-toggle" id="sync-toggle">关闭</span>';
-            syncToggle.textContent = '关闭';
-        } else {
-            syncIndicator.className = 'sync-indicator sync-disabled';
-            syncIndicator.innerHTML = '同步滚动: 关闭 <span class="sync-toggle" id="sync-toggle">开启</span>';
-            syncToggle.textContent = '开启';
+        if (!editor || !preview) {
+            console.log('编辑器或预览区域未找到');
+            return;
         }
         
-        // 重新绑定事件
-        document.getElementById('sync-toggle').addEventListener('click', arguments.callee);
-    });
-}
+        console.log('初始化同步滚动');
 
-// 等待所有库加载完成
-function waitForLibraries() {
-    return new Promise((resolve) => {
-        const checkLibraries = () => {
-            if (window.marked && window.hljs && window.katex) {
-                resolve();
+        // 同步滚动功能
+        function syncScroll(source, target) {
+            if (!syncScrolling) return;
+            
+            const sourceScrollTop = source.scrollTop;
+            const sourceScrollHeight = source.scrollHeight;
+            const sourceClientHeight = source.clientHeight;
+            
+            const targetScrollHeight = target.scrollHeight;
+            const targetClientHeight = target.clientHeight;
+            
+            // 计算目标元素的滚动位置
+            const ratio = sourceScrollTop / (sourceScrollHeight - sourceClientHeight);
+            const targetScrollTop = ratio * (targetScrollHeight - targetClientHeight);
+            
+            // 设置目标元素的滚动位置
+            target.scrollTop = targetScrollTop;
+        }
+        
+        // 编辑器滚动事件
+        editor.addEventListener('scroll', function() {
+            if (!syncScrolling || previewScrolling) return;
+            
+            editorScrolling = true;
+            syncScroll(editor, preview);
+            
+            setTimeout(() => {
+                editorScrolling = false;
+            }, 100);
+        });
+        
+        // 预览区域滚动事件
+        preview.addEventListener('scroll', function() {
+            if (!syncScrolling || editorScrolling) return;
+            
+            previewScrolling = true;
+            syncScroll(preview, editor);
+            
+            setTimeout(() => {
+                previewScrolling = false;
+            }, 100);
+        });
+        
+        // 同步开关
+        syncToggle.addEventListener('click', function() {
+            syncScrolling = !syncScrolling;
+            
+            if (syncScrolling) {
+                syncIndicator.className = 'sync-indicator';
+                syncIndicator.innerHTML = '同步滚动: 开启 <span class="sync-toggle" id="sync-toggle">关闭</span>';
             } else {
-                setTimeout(checkLibraries, 100);
+                syncIndicator.className = 'sync-indicator sync-disabled';
+                syncIndicator.innerHTML = '同步滚动: 关闭 <span class="sync-toggle" id="sync-toggle">开启</span>';
             }
-        };
-        checkLibraries();
-    });
-}
-
-// 配置marked
-marked.setOptions({
-    breaks: true,
-    gfm: true,
-    sanitize: false
-});
-
-// 渲染预览内容
-function renderPreviewContent(content, element) {
-    try {
-        // 第一步：预处理数学公式
-        let mathBlocks = [];
-        let processedContent = content;
-        
-        // 处理块级公式 $$...$$
-        processedContent = processedContent.replace(/\$\$([\s\S]*?)\$\$/g, function(match, formula) {
-            const id = `math-block-${mathBlocks.length}`;
-            mathBlocks.push({
-                id: id,
-                content: formula,
-                type: 'block'
-            });
-            return `@@${id}@@`;
-        });
-        
-        // 处理行内公式 $...$
-        processedContent = processedContent.replace(/\$([^$\\]*(?:\\.[^$\\]*)*)\$/g, function(match, formula) {
-            // 跳过已经被块级公式处理的内容
-            if (match.includes('@@')) return match;
             
-            const id = `math-inline-${mathBlocks.length}`;
-            mathBlocks.push({
-                id: id,
-                content: formula,
-                type: 'inline'
-            });
-            return `@@${id}@@`;
+            // 重新绑定事件
+            document.getElementById('sync-toggle').addEventListener('click', arguments.callee);
+            
+            showNotification(`同步滚动已${syncScrolling ? '开启' : '关闭'}`);
         });
-        
-        // 第二步：使用 marked 渲染 Markdown
-        let html = marked.parse(processedContent);
-        
-        // 第三步：恢复数学公式并用 KaTeX 渲染
-        mathBlocks.forEach(math => {
-            try {
-                const katexHtml = katex.renderToString(math.content.trim(), {
-                    displayMode: math.type === 'block',
-                    throwOnError: false,
-                    output: 'html'
+    }
+
+    // 渲染预览内容
+    function renderPreviewContent(content, element) {
+        try {
+            console.log('开始渲染预览内容');
+            
+            // 第一步：预处理数学公式
+            let mathBlocks = [];
+            let processedContent = content;
+            
+            // 处理块级公式 $$...$$
+            processedContent = processedContent.replace(/\$\$([\s\S]*?)\$\$/g, function(match, formula) {
+                const id = `math-block-${mathBlocks.length}`;
+                mathBlocks.push({
+                    id: id,
+                    content: formula,
+                    type: 'block'
                 });
-                html = html.replace(`@@${math.id}@@`, katexHtml);
-            } catch (e) {
-                console.error('KaTeX 渲染错误:', e);
-                // 直接显示原始公式内容
-                html = html.replace(`@@${math.id}@@`, 
-                    math.type === 'block' ? `$$${math.content}$$` : `$${math.content}$`);
-            }
-        });
-        
-        element.innerHTML = html;
-        
-        // 应用代码高亮
-        element.querySelectorAll('pre code').forEach((block) => {
-            hljs.highlightElement(block);
-        });
-    } catch (e) {
-        console.error('渲染错误:', e);
-        element.innerHTML = `<div class="error-message">渲染错误: ${e.message}</div>`;
-    }
-}
-
-// 更新预览
-function updatePreviews() {
-    try {
-        const clipboardContent = document.getElementById('clipboard-content');
-        const staticPreview = document.getElementById('static-preview');
-        
-        if (clipboardContent && staticPreview) {
-            const content = clipboardContent.value;
-            renderPreviewContent(content, staticPreview);
-            updateStats();
+                return `@@${id}@@`;
+            });
+            
+            // 处理行内公式 $...$
+            processedContent = processedContent.replace(/\$([^$\\]*(?:\\.[^$\\]*)*)\$/g, function(match, formula) {
+                // 跳过已经被块级公式处理的内容
+                if (match.includes('@@')) return match;
+                
+                const id = `math-inline-${mathBlocks.length}`;
+                mathBlocks.push({
+                    id: id,
+                    content: formula,
+                    type: 'inline'
+                });
+                return `@@${id}@@`;
+            });
+            
+            // 第二步：使用 marked 渲染 Markdown
+            let html = marked.parse(processedContent);
+            
+            // 第三步：恢复数学公式并用 KaTeX 渲染
+            mathBlocks.forEach(math => {
+                try {
+                    const katexHtml = katex.renderToString(math.content.trim(), {
+                        displayMode: math.type === 'block',
+                        throwOnError: false,
+                        output: 'html'
+                    });
+                    html = html.replace(`@@${math.id}@@`, katexHtml);
+                } catch (e) {
+                    console.error('KaTeX 渲染错误:', e);
+                    // 直接显示原始公式内容
+                    html = html.replace(`@@${math.id}@@`, 
+                        math.type === 'block' ? `$$${math.content}$$` : `$${math.content}$`);
+                }
+            });
+            
+            element.innerHTML = html;
+            
+            // 应用代码高亮
+            element.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+            
+            console.log('预览渲染完成');
+        } catch (e) {
+            console.error('渲染错误:', e);
+            element.innerHTML = `<div class="error-message">渲染错误: ${e.message}</div>`;
         }
-    } catch (e) {
-        console.error('预览更新错误:', e);
     }
-}
 
-// 更新统计信息
-function updateStats() {
-    const clipboardContent = document.getElementById('clipboard-content');
-    const wordCountEl = document.getElementById('word-count');
-    const charCountEl = document.getElementById('char-count');
-    const lineCountEl = document.getElementById('line-count');
-    
-    if (clipboardContent) {
-        const content = clipboardContent.value;
-        const words = content.trim() ? content.trim().split(/\s+/).length : 0;
-        const chars = content.length;
-        const lines = content.split('\n').length;
-        
-        if (wordCountEl) wordCountEl.textContent = words;
-        if (charCountEl) charCountEl.textContent = chars;
-        if (lineCountEl) lineCountEl.textContent = lines;
+    // 更新预览
+    function updatePreviews() {
+        try {
+            const clipboardContent = document.getElementById('clipboard-content');
+            const staticPreview = document.getElementById('static-preview');
+            
+            if (clipboardContent && staticPreview) {
+                const content = clipboardContent.value;
+                renderPreviewContent(content, staticPreview);
+                updateStats();
+            }
+        } catch (e) {
+            console.error('预览更新错误:', e);
+        }
     }
-}
 
-// 初始化
-document.addEventListener('DOMContentLoaded', async function() {
-    try {
-        // 等待所有必需的库加载完成
-        await waitForLibraries();
+    // 更新统计信息
+    function updateStats() {
+        const clipboardContent = document.getElementById('clipboard-content');
+        const wordCountEl = document.getElementById('word-count');
+        const charCountEl = document.getElementById('char-count');
+        const lineCountEl = document.getElementById('line-count');
         
-        // 初始化同步滚动
-        initSyncScroll();
+        if (clipboardContent) {
+            const content = clipboardContent.value;
+            const words = content.trim() ? content.trim().split(/\s+/).length : 0;
+            const chars = content.length;
+            const lines = content.split('\n').length;
+            
+            if (wordCountEl) wordCountEl.textContent = words;
+            if (charCountEl) charCountEl.textContent = chars;
+            if (lineCountEl) lineCountEl.textContent = lines;
+        }
+    }
+
+    // 显示通知
+    function showNotification(message, type = 'success') {
+        const notification = document.getElementById('notification');
+        if (!notification) return;
         
-        // 初始更新预览
+        notification.textContent = message;
+        notification.className = 'notification';
+        notification.classList.add(type);
+        notification.classList.add('show');
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+
+    // 保存内容
+    function saveContent() {
+        const clipboardContent = document.getElementById('clipboard-content');
+        const clipTitle = document.getElementById('clip-title');
+        
+        const content = clipboardContent.value.trim();
+        const title = clipTitle.value.trim();
+        
+        if (!content) {
+            showNotification('请输入内容后再保存！', 'error');
+            return;
+        }
+        
+        const newClip = {
+            id: Date.now(),
+            title: title || '未命名文档 ' + new Date().toLocaleTimeString(),
+            content: content,
+            date: new Date().toLocaleString('zh-CN')
+        };
+        
+        clips.unshift(newClip);
+        
+        // 更新保存计数
+        const saveCountEl = document.getElementById('save-count');
+        if (saveCountEl) {
+            saveCountEl.textContent = clips.length;
+        }
+        
+        showNotification('内容已保存！');
+    }
+
+    // 清空内容
+    function clearContent() {
+        if (confirm('确定要清空当前内容吗？')) {
+            const clipboardContent = document.getElementById('clipboard-content');
+            const clipTitle = document.getElementById('clip-title');
+            
+            clipboardContent.value = '';
+            clipTitle.value = '';
+            updatePreviews();
+            showNotification('内容已清空');
+        }
+    }
+
+    // 插入格式文本
+    function insertText(text) {
+        const clipboardContent = document.getElementById('clipboard-content');
+        const start = clipboardContent.selectionStart;
+        const end = clipboardContent.selectionEnd;
+        const selectedText = clipboardContent.value.substring(start, end);
+        
+        clipboardContent.value = clipboardContent.value.substring(0, start) + 
+                                text.replace('选中文本', selectedText) + 
+                                clipboardContent.value.substring(end);
+        
+        clipboardContent.focus();
+        clipboardContent.setSelectionRange(start + text.length, start + text.length);
         updatePreviews();
-        updateStats();
+    }
+
+    // 复制HTML
+    function copyHTML() {
+        const staticPreview = document.getElementById('static-preview');
+        const html = staticPreview.innerHTML;
+        navigator.clipboard.writeText(html)
+            .then(() => {
+                showNotification('HTML已复制到剪贴板！');
+            })
+            .catch(err => {
+                showNotification('复制失败', 'error');
+            });
+    }
+
+    // 复制文本
+    function copyText() {
+        const clipboardContent = document.getElementById('clipboard-content');
+        const text = clipboardContent.value;
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                showNotification('文本已复制到剪贴板！');
+            })
+            .catch(err => {
+                showNotification('复制失败', 'error');
+            });
+    }
+
+    // 初始化所有事件监听器
+    function initEventListeners() {
+        console.log('初始化事件监听器');
         
-        // 绑定编辑器输入事件
+        // 保存按钮
+        const saveBtn = document.getElementById('save-btn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', saveContent);
+            console.log('保存按钮事件已绑定');
+        }
+        
+        // 清空按钮
+        const clearBtn = document.getElementById('clear-btn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', clearContent);
+            console.log('清空按钮事件已绑定');
+        }
+        
+        // 格式按钮
+        const formatButtons = document.querySelectorAll('[data-format]');
+        formatButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const format = this.getAttribute('data-format');
+                insertText(format);
+            });
+        });
+        console.log('格式按钮事件已绑定');
+        
+        // 复制HTML按钮
+        const copyHtmlBtn = document.getElementById('copy-html-btn');
+        if (copyHtmlBtn) {
+            copyHtmlBtn.addEventListener('click', copyHTML);
+            console.log('复制HTML按钮事件已绑定');
+        }
+        
+        // 复制文本按钮
+        const copyTextBtn = document.getElementById('copy-text-btn');
+        if (copyTextBtn) {
+            copyTextBtn.addEventListener('click', copyText);
+            console.log('复制文本按钮事件已绑定');
+        }
+        
+        // 编辑器输入事件
         const clipboardContent = document.getElementById('clipboard-content');
         if (clipboardContent) {
             clipboardContent.addEventListener('input', updatePreviews);
+            console.log('编辑器输入事件已绑定');
         }
         
-        console.log('同步滚动功能已初始化');
-    } catch (error) {
-        console.error('初始化失败:', error);
+        // 主题切换
+        const themeButtons = document.querySelectorAll('.theme-btn');
+        themeButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                themeButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const theme = this.getAttribute('data-theme');
+                const staticPreview = document.getElementById('static-preview');
+                if (staticPreview) {
+                    staticPreview.className = `preview-content theme-${theme}`;
+                }
+                showNotification(`已切换到${this.textContent}主题`);
+            });
+        });
+        console.log('主题切换事件已绑定');
+        
+        // 其他按钮的简单实现
+        const otherButtons = [
+            'import-file-btn', 'export-pdf-btn', 'export-html-btn', 'print-btn',
+            'settings-btn', 'clear-all-btn', 'view-clips-btn', 'share-link-btn',
+            'auto-save-btn'
+        ];
+        
+        otherButtons.forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) {
+                btn.addEventListener('click', function() {
+                    showNotification(`功能 "${this.textContent.trim()}" 正在开发中`, 'info');
+                });
+            }
+        });
+        console.log('其他按钮事件已绑定');
     }
-});
-</script>
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', async function() {
+        console.log('DOM加载完成，开始初始化...');
+        
+        try {
+            // 等待所有必需的库加载完成
+            await waitForLibraries();
+            
+            // 配置marked
+            configureMarked();
+            
+            // 初始化事件监听器
+            initEventListeners();
+            
+            // 初始化同步滚动
+            initSyncScroll();
+            
+            // 初始更新预览
+            updatePreviews();
+            updateStats();
+            
+            console.log('应用初始化完成');
+        } catch (error) {
+            console.error('初始化失败:', error);
+            showNotification('应用初始化失败，请刷新页面重试', 'error');
+        }
+    });
+    </script>
 </body>
 </html>
