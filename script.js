@@ -10,6 +10,7 @@ const config = {
 // 全局变量
 let clips = [];
 let currentSettings = { ...config };
+let autoSaveIntervalId = null;
 
 // 等待所有库加载完成
 function waitForLibraries() {
@@ -78,10 +79,16 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         // 配置marked
+        const renderer = new marked.Renderer();
+        renderer.link = function(href, title, text) {
+            return `<a href="${href}" title="${title || ''}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+        };
+        
         marked.setOptions({
             breaks: true,
             gfm: true,
-            sanitize: false
+            sanitize: false,
+            renderer: renderer
         });
 
         // 根据页面类型初始化
@@ -110,10 +117,6 @@ function initHomePage() {
     const staticPreview = document.getElementById('static-preview');
     const formatButtons = document.querySelectorAll('[data-format]');
     const themeButtons = document.querySelectorAll('.theme-btn');
-    const settingsModal = document.getElementById('settings-modal');
-    const settingsBtn = document.getElementById('settings-btn');
-    const closeModal = document.querySelector('.close-modal');
-    const saveSettingsBtn = document.getElementById('save-settings-btn');
 
     // 统计元素
     const wordCountEl = document.getElementById('word-count');
@@ -128,6 +131,9 @@ function initHomePage() {
     updatePreviews();
     updateStats();
     updateSaveCount();
+
+    // 启动自动保存
+    startAutoSave();
 
     // === 事件监听器 ===
 
@@ -158,17 +164,6 @@ function initHomePage() {
             staticPreview.className = `preview-content theme-${theme}`;
         });
     });
-
-    // 设置模态框
-    settingsBtn.addEventListener('click', function() {
-        settingsModal.style.display = 'flex';
-    });
-
-    closeModal.addEventListener('click', function() {
-        settingsModal.style.display = 'none';
-    });
-
-    saveSettingsBtn.addEventListener('click', saveSettings);
 
     // 文件导入
     document.getElementById('import-file-btn').addEventListener('click', function() {
@@ -272,7 +267,8 @@ function initHomePage() {
 
     function shareLink() {
         const content = encodeURIComponent(clipboardContent.value);
-        const url = `${window.location.origin}${window.location.pathname}?content=${content}`;
+        const title = encodeURIComponent(clipTitle.value || '未命名文档');
+        const url = `${window.location.origin}${window.location.pathname}?content=${content}&title=${title}`;
         navigator.clipboard.writeText(url)
             .then(() => {
                 showNotification('分享链接已复制到剪贴板！');
@@ -282,24 +278,39 @@ function initHomePage() {
             });
     }
 
-    // 自动保存（仅主页）
-    setInterval(() => {
-        if (currentSettings.autoSave && clipboardContent && clipboardContent.value.trim()) {
-            const autoSaveClip = {
-                id: 'autosave',
-                title: '自动保存',
-                content: clipboardContent.value,
-                date: new Date().toLocaleString('zh-CN')
-            };
-            localStorage.setItem('autoSaveContent', JSON.stringify(autoSaveClip));
+    function startAutoSave() {
+        if (currentSettings.autoSave) {
+            autoSaveIntervalId = setInterval(() => {
+                if (clipboardContent && clipboardContent.value.trim()) {
+                    const autoSaveClip = {
+                        id: 'autosave',
+                        title: clipTitle.value || '自动保存',
+                        content: clipboardContent.value,
+                        date: new Date().toLocaleString('zh-CN')
+                    };
+                    localStorage.setItem('autoSaveContent', JSON.stringify(autoSaveClip));
+                    console.log('内容已自动保存');
+                }
+            }, currentSettings.autoSaveInterval);
         }
-    }, currentSettings.autoSaveInterval);
+    }
 
     // 加载自动保存的内容（仅主页）
-    const autoSaveContent = JSON.parse(localStorage.getItem('autoSaveContent'));
-    if (autoSaveContent && clipboardContent && confirm('发现自动保存的内容，是否加载？')) {
-        clipboardContent.value = autoSaveContent.content;
-        updatePreviews();
+    const autoSaveContent = localStorage.getItem('autoSaveContent');
+    if (autoSaveContent && clipboardContent && !clipboardContent.value.trim()) {
+        if (confirm('发现自动保存的内容，是否加载？')) {
+            try {
+                const autoSaveData = JSON.parse(autoSaveContent);
+                clipboardContent.value = autoSaveData.content;
+                if (clipTitle && autoSaveData.title && autoSaveData.title !== '自动保存') {
+                    clipTitle.value = autoSaveData.title;
+                }
+                updatePreviews();
+                showNotification('自动保存的内容已加载');
+            } catch (e) {
+                console.error('加载自动保存内容失败:', e);
+            }
+        }
     }
 }
 
@@ -357,6 +368,8 @@ function initClipsPage() {
             editClip(index);
         } else if (target.classList.contains('delete-btn')) {
             deleteClip(index);
+        } else if (target.classList.contains('preview-toggle')) {
+            togglePreview(index);
         }
     });
 }
@@ -413,7 +426,6 @@ function renderClips(filter = '') {
                 <span class="clip-date">${escapeHtml(clip.date)}</span>
             </div>
             <div class="clip-content">${escapeHtml(clip.content.substring(0, 100))}${clip.content.length > 100 ? '...' : ''}</div>
-            <div class="clip-preview" id="preview-${clip.id}">加载中...</div>
             <div class="clip-actions">
                 <button class="btn btn-sm copy-btn" data-index="${index}">
                     <i class="fas fa-copy"></i> 复制
@@ -421,25 +433,35 @@ function renderClips(filter = '') {
                 <button class="btn btn-sm edit-btn" data-index="${index}">
                     <i class="fas fa-edit"></i> 编辑
                 </button>
+                <button class="btn btn-sm preview-toggle" data-index="${index}">
+                    <i class="fas fa-eye"></i> 预览
+                </button>
                 <button class="btn btn-sm btn-danger delete-btn" data-index="${index}">
                     <i class="fas fa-trash"></i> 删除
                 </button>
             </div>
+            <div class="clip-preview" id="preview-${clip.id}" style="display: none;"></div>
         `;
         clipboardList.appendChild(clipElement);
-        
-        // 延迟渲染预览，避免阻塞UI
-        setTimeout(() => {
-            const previewElement = document.getElementById(`preview-${clip.id}`);
-            if (previewElement) {
-                renderPreviewContent(clip.content, previewElement);
-            }
-        }, 0);
     });
 
     // 更新统计栏（仅剪贴板页面）
     if (isClipsPage()) {
         updateStatsBar();
+    }
+}
+
+function togglePreview(index) {
+    const clip = clips[index];
+    const previewElement = document.getElementById(`preview-${clip.id}`);
+    
+    if (previewElement.style.display === 'none') {
+        // 显示预览
+        previewElement.style.display = 'block';
+        renderPreviewContent(clip.content, previewElement);
+    } else {
+        // 隐藏预览
+        previewElement.style.display = 'none';
     }
 }
 
@@ -510,8 +532,51 @@ function renderPreviewContent(content, element) {
     }
 }
 
+function copyToClipboard(index) {
+    const clip = clips[index];
+    navigator.clipboard.writeText(clip.content)
+        .then(() => {
+            showNotification('内容已复制到剪贴板！');
+        })
+        .catch(err => {
+            showNotification('复制失败', 'error');
+        });
+}
+
+function editClip(index) {
+    const clip = clips[index];
+    if (isHomePage()) {
+        // 在主页编辑
+        document.getElementById('clipboard-content').value = clip.content;
+        document.getElementById('clip-title').value = clip.title;
+        updatePreviews();
+        showNotification('内容已加载到编辑器');
+    } else {
+        // 在剪贴板页面编辑 - 跳转到主页
+        localStorage.setItem('editClip', JSON.stringify(clip));
+        window.location.href = 'index.html';
+    }
+}
+
+function deleteClip(index) {
+    if (confirm('确定要删除这条内容吗？')) {
+        clips.splice(index, 1);
+        saveClips();
+        renderClips();
+        showNotification('内容已删除');
+    }
+}
+
+function clearAllClips() {
+    if (confirm('确定要清空所有内容吗？此操作不可恢复！')) {
+        clips = [];
+        saveClips();
+        renderClips();
+        showNotification('所有内容已清空');
+    }
+}
+
 function saveContent() {
-    console.log('保存内容');
     const clipboardContent = document.getElementById('clipboard-content');
     const clipTitle = document.getElementById('clip-title');
     
@@ -532,14 +597,24 @@ function saveContent() {
     
     clips.unshift(newClip);
     
+    // 限制保存数量
     if (clips.length > currentSettings.maxClips) {
         clips = clips.slice(0, currentSettings.maxClips);
     }
     
-    localStorage.setItem('enhancedClips', JSON.stringify(clips));
+    saveClips();
     updateSaveCount();
-    renderClips();
     showNotification('内容已保存！');
+}
+
+function saveClips() {
+    try {
+        localStorage.setItem('enhancedClips', JSON.stringify(clips));
+        console.log('内容已保存到本地存储');
+    } catch (e) {
+        console.error('保存失败:', e);
+        showNotification('保存失败，存储空间可能已满', 'error');
+    }
 }
 
 function updateSaveCount() {
@@ -551,103 +626,38 @@ function updateSaveCount() {
 
 function toggleAutoSave() {
     const autoSaveBtn = document.getElementById('auto-save-btn');
-    currentSettings.autoSave = !currentSettings.autoSave;
-    autoSaveBtn.innerHTML = `<i class="fas fa-sync"></i> 自动保存: ${currentSettings.autoSave ? '开启' : '关闭'}`;
-    autoSaveBtn.classList.toggle('btn-info', currentSettings.autoSave);
-    autoSaveBtn.classList.toggle('btn-secondary', !currentSettings.autoSave);
-    showNotification(`自动保存已${currentSettings.autoSave ? '开启' : '关闭'}`);
-}
-
-function copyToClipboard(index) {
-    const clip = clips[index];
-    navigator.clipboard.writeText(clip.content)
-        .then(() => {
-            showNotification('内容已复制到剪贴板！');
-        })
-        .catch(err => {
-            showNotification('复制失败，请重试', 'error');
-        });
-}
-
-function editClip(index) {
-    const clip = clips[index];
     
-    if (isHomePage()) {
-        // 在主页直接加载到编辑器
-        const clipboardContent = document.getElementById('clipboard-content');
-        const clipTitle = document.getElementById('clip-title');
-        
-        clipboardContent.value = clip.content;
-        clipTitle.value = clip.title;
-        
-        // 更新预览
-        const staticPreview = document.getElementById('static-preview');
-        if (staticPreview) {
-            renderPreviewContent(clip.content, staticPreview);
-        }
-        
-        showNotification('内容已加载到编辑器');
+    if (autoSaveIntervalId) {
+        // 关闭自动保存
+        clearInterval(autoSaveIntervalId);
+        autoSaveIntervalId = null;
+        autoSaveBtn.innerHTML = '<i class="fas fa-sync"></i> 自动保存: 关闭';
+        autoSaveBtn.classList.remove('btn-success');
+        autoSaveBtn.classList.add('btn-secondary');
+        showNotification('自动保存已关闭');
     } else {
-        // 在剪贴板页面，跳转回主页并加载内容
-        const content = encodeURIComponent(clip.content);
-        const title = encodeURIComponent(clip.title);
-        window.location.href = `index.html?edit=${index}&content=${content}&title=${title}`;
-    }
-}
-
-function deleteClip(index) {
-    if (confirm('确定要删除这个内容吗？')) {
-        clips.splice(index, 1);
-        localStorage.setItem('enhancedClips', JSON.stringify(clips));
+        // 开启自动保存
+        autoSaveIntervalId = setInterval(() => {
+            const clipboardContent = document.getElementById('clipboard-content');
+            const content = clipboardContent.value.trim();
+            
+            if (content) {
+                const autoSaveClip = {
+                    id: 'autosave',
+                    title: document.getElementById('clip-title').value || '自动保存',
+                    content: content,
+                    date: new Date().toLocaleString('zh-CN')
+                };
+                localStorage.setItem('autoSaveContent', JSON.stringify(autoSaveClip));
+                console.log('内容已自动保存');
+            }
+        }, currentSettings.autoSaveInterval);
         
-        const searchClips = document.getElementById('search-clips');
-        renderClips(searchClips ? searchClips.value : '');
-        updateSaveCount();
-        
-        // 更新剪贴板页面的统计栏
-        if (isClipsPage()) {
-            updateStatsBar();
-        }
-        
-        showNotification('内容已删除');
+        autoSaveBtn.innerHTML = '<i class="fas fa-sync"></i> 自动保存: 开启';
+        autoSaveBtn.classList.remove('btn-secondary');
+        autoSaveBtn.classList.add('btn-success');
+        showNotification('自动保存已开启');
     }
-}
-
-function showNotification(message, type = 'success') {
-    const notification = document.getElementById('notification');
-    if (!notification) return;
-    
-    notification.textContent = message;
-    notification.className = 'notification';
-    notification.classList.add(type);
-    notification.classList.add('show');
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 3000);
-}
-
-function applySettings() {
-    const clipboardContent = document.getElementById('clipboard-content');
-    if (clipboardContent) {
-        clipboardContent.style.fontSize = currentSettings.fontSize;
-    }
-}
-
-function saveSettings() {
-    currentSettings.fontSize = document.getElementById('font-size').value;
-    currentSettings.autoSaveInterval = parseInt(document.getElementById('auto-save-interval').value) * 1000;
-    currentSettings.maxClips = parseInt(document.getElementById('max-clips').value);
-    
-    localStorage.setItem('clipboardSettings', JSON.stringify(currentSettings));
-    applySettings();
-    
-    const settingsModal = document.getElementById('settings-modal');
-    if (settingsModal) {
-        settingsModal.style.display = 'none';
-    }
-    
-    showNotification('设置已保存！');
 }
 
 function handleFileImport(event) {
@@ -657,18 +667,26 @@ function handleFileImport(event) {
     const reader = new FileReader();
     reader.onload = function(e) {
         const clipboardContent = document.getElementById('clipboard-content');
+        const clipTitle = document.getElementById('clip-title');
+        
         if (clipboardContent) {
             clipboardContent.value = e.target.result;
             
-            // 更新预览
-            const staticPreview = document.getElementById('static-preview');
-            if (staticPreview) {
-                renderPreviewContent(e.target.result, staticPreview);
+            // 设置文件名为标题
+            if (clipTitle) {
+                const fileName = file.name.replace(/\.[^/.]+$/, ""); // 移除扩展名
+                clipTitle.value = fileName;
             }
             
+            updatePreviews();
             showNotification('文件导入成功！');
         }
     };
+    
+    reader.onerror = function() {
+        showNotification('文件读取失败', 'error');
+    };
+    
     reader.readAsText(file);
     
     // 重置文件输入
@@ -676,142 +694,188 @@ function handleFileImport(event) {
 }
 
 function exportToPDF() {
-    showNotification('PDF导出功能正在开发中...', 'warning');
+    const staticPreview = document.getElementById('static-preview');
+    const title = document.getElementById('clip-title').value || '未命名文档';
+    
+    // 使用html2pdf.js库进行PDF导出
+    if (typeof html2pdf === 'undefined') {
+        // 动态加载html2pdf库
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        script.onload = function() {
+            generatePDF(staticPreview, title);
+        };
+        document.head.appendChild(script);
+        showNotification('正在加载PDF导出功能...', 'info');
+    } else {
+        generatePDF(staticPreview, title);
+    }
+}
+
+function generatePDF(element, title) {
+    const opt = {
+        margin: 10,
+        filename: `${title}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save()
+        .then(() => {
+            showNotification('PDF导出成功！');
+        })
+        .catch(err => {
+            console.error('PDF导出失败:', err);
+            showNotification('PDF导出失败', 'error');
+        });
 }
 
 function exportToHTML() {
     const staticPreview = document.getElementById('static-preview');
-    if (!staticPreview) return;
+    const title = document.getElementById('clip-title').value || '未命名文档';
+    const htmlContent = staticPreview.innerHTML;
     
-    const content = staticPreview.innerHTML;
-    const blob = new Blob([`<!DOCTYPE html>
+    const fullHtml = `
+<!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>导出内容</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<style>
-body { font-family: Arial, sans-serif; padding: 20px; }
-pre { background: #f5f5f5; padding: 15px; border-radius: 5px; }
-.katex { font-size: 1.1em; }
-.katex-display { margin: 1.5rem 0; text-align: center; }
-</style>
+    <meta charset="UTF-8">
+    <title>${escapeHtml(title)}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        pre { background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        code { font-family: 'Courier New', monospace; }
+        .math-display { text-align: center; margin: 20px 0; }
+        img { max-width: 100%; height: auto; }
+    </style>
 </head>
-<body>${content}</body>
-</html>`], { type: 'text/html' });
+<body>
+    <h1>${escapeHtml(title)}</h1>
+    <div>${htmlContent}</div>
+</body>
+</html>`;
+    
+    const blob = new Blob([fullHtml], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'content.html';
+    a.download = `${title}.html`;
     a.click();
-    showNotification('HTML已导出！');
+    URL.revokeObjectURL(url);
+    showNotification('HTML导出成功！');
 }
 
 function printContent() {
     const staticPreview = document.getElementById('static-preview');
-    if (!staticPreview) return;
-    
     const printWindow = window.open('', '_blank');
+    const title = document.getElementById('clip-title').value || '未命名文档';
+    
     printWindow.document.write(`
+        <!DOCTYPE html>
         <html>
         <head>
-            <title>打印内容</title>
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+            <title>${escapeHtml(title)}</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css">
             <style>
-                body { font-family: Arial, sans-serif; padding: 20px; }
-                pre { background: #f5f5f5; padding: 15px; border-radius: 5px; }
-                .katex { font-size: 1.1em; }
-                .katex-display { margin: 1.5rem 0; text-align: center; }
+                body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+                pre { background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; }
+                code { font-family: 'Courier New', monospace; }
+                .math-display { text-align: center; margin: 20px 0; }
+                img { max-width: 100%; height: auto; }
+                @media print {
+                    body { max-width: none; }
+                    pre { page-break-inside: avoid; }
+                }
             </style>
         </head>
         <body>
-            ${staticPreview.innerHTML}
+            <h1>${escapeHtml(title)}</h1>
+            <div>${staticPreview.innerHTML}</div>
         </body>
         </html>
     `);
+    
     printWindow.document.close();
-    printWindow.print();
-}
-
-function clearAllClips() {
-    if (confirm('确定要清空所有保存的内容吗？此操作不可恢复！')) {
-        localStorage.removeItem('enhancedClips');
-        clips = [];
-        renderClips();
-        updateSaveCount();
-        
-        // 更新剪贴板页面的统计栏
-        if (isClipsPage()) {
-            updateStatsBar();
-        }
-        
-        showNotification('所有内容已清空');
-    }
-}
-
-function importExample() {
-    const clipboardContent = document.getElementById('clipboard-content');
-    const clipTitle = document.getElementById('clip-title');
-    
-    if (!clipboardContent || !clipTitle) return;
-    
-    const exampleContent = `# 示例内容
-
-这是一个导入的示例内容，展示了各种功能：
-
-## 数学公式
-行内公式：$E = mc^2$
-
-块级公式：
-$$
-\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}
-$$
-
-## 代码示例
-\`\`\`python
-def hello_world():
-    print("Hello, World!")
-    return True
-\`\`\`
-
-## 功能列表
-- Markdown支持
-- 数学公式渲染
-- 代码高亮
-- 文件操作
-- 主题切换`;
-
-    clipboardContent.value = exampleContent;
-    clipTitle.value = '示例文档';
-    
-    // 更新预览
-    const staticPreview = document.getElementById('static-preview');
-    if (staticPreview) {
-        renderPreviewContent(exampleContent, staticPreview);
-    }
-    
-    showNotification('示例内容已导入！');
+    printWindow.focus();
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
 }
 
 function exportData() {
-    const data = JSON.stringify(clips, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
+    const data = {
+        clips: clips,
+        exportDate: new Date().toISOString(),
+        version: '1.0'
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'clipboard-data.json';
+    a.download = `clipboard-backup-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
-    showNotification('数据已导出！');
+    URL.revokeObjectURL(url);
+    showNotification('数据导出成功！');
 }
 
-// HTML转义函数
-function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+function applySettings() {
+    // 应用字体大小
+    const editor = document.getElementById('clipboard-content');
+    if (editor) {
+        editor.style.fontSize = currentSettings.fontSize;
+    }
+    
+    // 应用主题
+    const staticPreview = document.getElementById('static-preview');
+    if (staticPreview) {
+        staticPreview.className = `preview-content theme-${currentSettings.editorTheme}`;
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function showNotification(message, type = 'success') {
+    // 创建通知元素
+    let notification = document.getElementById('notification');
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            z-index: 10000;
+            transition: all 0.3s ease;
+            transform: translateX(100%);
+            opacity: 0;
+        `;
+        document.body.appendChild(notification);
+    }
+    
+    // 设置样式和内容
+    notification.textContent = message;
+    notification.style.backgroundColor = type === 'error' ? '#e74c3c' : 
+                                      type === 'info' ? '#3498db' : '#27ae60';
+    notification.style.transform = 'translateX(0)';
+    notification.style.opacity = '1';
+    
+    // 3秒后隐藏
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        notification.style.opacity = '0';
+    }, 3000);
 }
