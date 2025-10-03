@@ -231,32 +231,54 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderPreviewContent(content, element) {
         try {
-            // 临时替换数学公式中的 $$ 为特殊标记
-            let processedContent = content.replace(/\$\$/g, '%%MATH_DELIMITER%%');
+            // 先保护数学公式块，避免 marked 处理内部的换行符
+            let processedContent = content;
+            const mathBlocks = [];
             
-            let html = marked.parse(processedContent);
-            
-            // 恢复 $$ 并渲染数学公式
-            html = html.replace(/%%MATH_DELIMITER%%([\s\S]*?)%%MATH_DELIMITER%%/g, (match, formula) => {
-                try {
-                    return katex.renderToString(formula.trim(), { 
-                        displayMode: true, 
-                        throwOnError: false
-                    });
-                } catch (e) {
-                    return `<div class="error-message">公式渲染错误</div>`;
-                }
+            // 保护块级数学公式 $$...$$
+            processedContent = processedContent.replace(/\$\$([\s\S]*?)\$\$/g, (match, formula) => {
+                const id = `MATH_BLOCK_${mathBlocks.length}`;
+                mathBlocks.push({
+                    id: id,
+                    content: formula,
+                    type: 'block'
+                });
+                return id;
             });
             
-            // 处理行内公式 $
-            html = html.replace(/\$([^$\\]*(?:\\.[^$\\]*)*)\$/g, (match, formula) => {
+            // 保护行内数学公式 $...$
+            processedContent = processedContent.replace(/\$([^$\\]*(?:\\.[^$\\]*)*)\$/g, (match, formula) => {
+                const id = `MATH_INLINE_${mathBlocks.length}`;
+                mathBlocks.push({
+                    id: id,
+                    content: formula,
+                    type: 'inline'
+                });
+                return id;
+            });
+            
+            // 使用 marked 解析（现在数学公式已经被保护起来了）
+            let html = marked.parse(processedContent);
+            
+            // 恢复数学公式并渲染
+            mathBlocks.forEach(math => {
                 try {
-                    return katex.renderToString(formula.trim(), { 
-                        displayMode: false, 
-                        throwOnError: false
-                    });
+                    let renderedMath;
+                    if (math.type === 'block') {
+                        renderedMath = katex.renderToString(math.content.trim(), { 
+                            displayMode: true, 
+                            throwOnError: false
+                        });
+                    } else {
+                        renderedMath = katex.renderToString(math.content.trim(), { 
+                            displayMode: false, 
+                            throwOnError: false
+                        });
+                    }
+                    html = html.replace(math.id, renderedMath);
                 } catch (e) {
-                    return `<span class="error-message">${formula}</span>`;
+                    console.error('公式渲染错误:', e);
+                    html = html.replace(math.id, `<span class="error-message">公式错误: ${math.content}</span>`);
                 }
             });
             
@@ -267,6 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 hljs.highlightElement(block);
             });
         } catch (e) {
+            console.error('渲染错误:', e);
             element.innerHTML = `<div class="error-message">渲染错误</div>`;
         }
     }
